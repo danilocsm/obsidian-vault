@@ -54,9 +54,69 @@ removes all anonymous volumes
 docker volume prune
 ```
 
+Creates an anonymous volume
+1. Created a specifically for a single container
+2. Survives container shutdown / restart unless --rm is used
+3. Can not be share across container
+4. Since its anonymous, it can't be re-used (even on same image)
+5. Useful for preventig data overwritting
+6. Can be used to prioritize container-internal paths higher than external paths
+```bash
+docker run -v /app/data
+```
+Creates a named volume
+1. Create in general - not tied to any specific container
+2. Survives container shutdown/restart and removal of the container
+3. Can be share across container
+4. Can be re-used for same container
+```bash
+docker run -v data:/app/data
+```
+Bind mount(NOT MANAGED BY DOCKER)
+1. Location on host file system, not tied to any specific container
+2. Survives container shutdown/restart and removal of the container
+3. Can be share across container
+4. Can be re-used for same container
+5. Add `:ro` after the container path to make the external path read-only
+```bash
+docker run -v /path/to/code:/app/code
+```
+
 #### Bind Mounts
 a folder on the host machine managed by the owner, not by docker
 great for persistent and editable data
+
+#### .dockerignore file
+
+Works similiar as .gitignore, but it specifies which folders and files should NOT be copied when building an image with the COPY command
+
+## Docker environment variables
+
+```dockerfile
+ENV PORT 80
+
+EXPOSE $PORT
+```
+
+```bash
+docker run -p 3000:8000 --env PORT=8000 ...
+```
+setting variables through a file
+```bash
+docker run -p 3000:8000 --env-file ./.env ...
+```
+
+## Docker arguments
+```dockerfile
+ARG DEFAULT_PORT=80
+
+ENV PORT $DEFAULT_PORT
+```
+
+```bash
+docker build ... --build-arg DEFAULT_PORT=8000 .
+```
+
 ## Docker basic CLI commands
 
 list all running containers
@@ -91,6 +151,11 @@ docker run -p local_port:container_port -v feedback:/app/feedback <container_id/
 (-v flag to create a bind mount)
 ```shell
 docker run -p local_port:container_port -v <volume>:<wordir/dir> -v $(pwd):/<container_working_dir> <container_id/container_name>
+```
+
+you can override some bind mounts by adding anonymous volumes in the docker run command to preserve some data, like node_modules
+```bash
+docker run ... -v /app/node_modules 
 ```
 	
 attachs to a running dettached container
